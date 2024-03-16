@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<script src="../js/vue.js"></script>
+
+<body>
+  <div id="root">
+    <h1>你好</h1>
+  </div>
+</body>
+</html>
+
+<script>
+  const x = new Vue({
+    el: '#root',
+    data: {
+      name : "world"
+    }
+  })
+
+  const x2 = new Vue({
+    el: '#root',
+    data: function() {
+      return {
+        name: 'world'
+      }
+    }
+  })
+
+  // x.$mount('#root')
+  console.log(x);
+</script>
