@@ -10,6 +10,7 @@
 <body>
   <div id="root">
     <h1>欢迎来到{{name}}学习</h1>
+    <input type="text" placeholder="按下回车提示输入" @keyup.control="showInfo">
   </div>
 </body>
 
@@ -21,7 +22,14 @@
       name: 'hello'
     },
     methods: {
-      
+      showInfo(e) {
+        // 要在按下回车时才触发，借助e中的keycode
+        // console.log(e.target.value);
+        // console.log(e.keyCode);
+        // if(e.keyCode !== 13) return
+        console.log(e.key);
+        // console.log(e.target.value);
+      }
     }
   })
 </script>

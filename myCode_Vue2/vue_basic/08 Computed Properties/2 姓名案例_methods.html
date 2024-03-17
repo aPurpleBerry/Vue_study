@@ -9,7 +9,9 @@
 
 <body>
   <div id="root">
-    <h1>欢迎来到{{name}}学习</h1>
+    姓：<input type="text" v-model="firstName"> <br/><br/>
+    名：<input type="text" v-model="lastName"> <br/><br/>
+    全名：<span>{{fullName()}}</span>
   </div>
 </body>
 
@@ -21,7 +23,10 @@
       name: 'hello'
     },
     methods: {
-      
+      fullName() {
+        console.log('@---fullName')
+				return this.firstName + '-' + this.lastName
+      }
     }
   })
 </script>

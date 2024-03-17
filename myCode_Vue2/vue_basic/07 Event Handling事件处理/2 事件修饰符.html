@@ -10,9 +10,10 @@
 <body>
   <div id="root">
     <h1>欢迎来到{{name}}学习</h1>
+    <a href="http://www.atguigu.com" @click.prevent="showInfo">点我提示信息</a>
   </div>
 </body>
-
+</html>
 
 <script>
   const vm = new Vue({
@@ -21,9 +22,10 @@
       name: 'hello'
     },
     methods: {
-      
+      showInfo(e) {
+        // e.preventDefault() // 阻止默认调用行为
+        alert('同学你好！')
+      }
     }
   })
 </script>
-
-</html>

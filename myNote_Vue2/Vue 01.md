@@ -1,4 +1,6 @@
-# Vue
+# Vue 01
+
+> B站 Vue全家桶（BV1Zy4y1K7SH） 学习笔记
 
 ## 介绍
 
@@ -378,7 +380,7 @@ data: function() {}  此处的this是vue对象，不能改成箭头函数
 
 ![image-20240316161723577](img/image-20240316161723577.png)
 
-<font color="red">意思就是 age这个属性不可枚举，也就是说age属性**不参与遍历**。</font>
+<font color="red">控制台中这个属性颜色淡：意味着 age这个属性不可枚举，也就是说age属性**不参与遍历**。</font>
 
 当``` console.log(Object.keys(person));```时，只能拿到 name sex属性。
 
@@ -491,6 +493,8 @@ Object.defineProperty(obj2,'x',{
 
 <img src="img/image-20240316171714159.png" alt="image-20240316171714159" style="zoom:80%;" />
 
+
+
 1. Vue中的数据代理：
 
 ​       通过vm对象来代理data对象中属性的操作（读/写）
@@ -507,3 +511,550 @@ Object.defineProperty(obj2,'x',{
 
 ​       在getter/setter内部去操作（读/写）data中对应的属性。
 
+## 07 事件处理
+
+### 事件的基本使用
+
+事件的基本使用：
+
+​       1.使用 v-on:xxx 或 @xxx 绑定事件，其中xxx是事件名；
+
+​       2.事件的回调需要配置在methods对象中，最终会在vm上；
+
+​       3.methods中配置的函数，不要用箭头函数！否则this就不是vm了；
+
+​       4.methods中配置的函数，都是被Vue所管理的函数，this的指向是vm 或 组件实例对象；
+
+​       5.@click="demo" 和 @click="demo($event)" 效果一致，但后者可以传参；可以传多个参数，但是methods中函数的参数顺序要和click绑定中一样
+
+比如：@click="demo(a,b,$event) 。functiondemo(a,b,event) 
+
+​    或者 @click="demo($event,a,b) 。functiondemo(event,a,b) 
+
+- 示例
+
+```html
+<body>
+  <div id="root">
+    <h1>欢迎来到{{name}}学习</h1>
+    <button v-on:click="showInfo1">按钮1</button>
+    <button @click="showInfo2(66,$event)">按钮简写2</button>
+  </div>
+</body>
+
+
+<script>
+  const vm = new Vue({
+    el: '#root',
+    data: {
+      name: '哈哈'
+    },
+    methods: {
+      showInfo1(event){
+        // 事件对象
+        console.log(event.target);
+        console.log(event.innerText);
+        console.log(this === vm); // 此处的this 是vm
+        alert("同学你好1111")
+      },
+      showInfo2(number,event){
+        // showInfo2形参的顺序和 html中写的顺序一样
+        console.log(number, a);
+
+      },
+    }
+  })
+</script>
+```
+
+### 事件修饰符
+
+1. prevent：阻止默认事件（常用）；
+2.  stop：阻止事件冒泡（常用）；
+3. once：事件只触发一次（常用）；
+4. capture：使用事件的捕获模式；
+5. self：只有event.target是当前操作的元素时才触发事件；
+6. passive：事件的默认行为立即执行，无需等待事件回调执行完毕
+
+
+
+#### ①prevent阻止默认事件
+
+这里给a绑定了一个点击事件，a的默认行为是跳转网址，之前阻止默认事件的方法是e.preventDefault()。Vue中可以  @click.prevent 进行阻止
+
+```html
+<body>
+  <div id="root">
+    <h1>欢迎来到{{name}}学习</h1>
+    <a href="http://www.atguigu.com" @click.prevent="showInfo">点我提示信息</a>
+  </div>
+</body>
+</html>
+
+<script>
+  const vm = new Vue({
+    el: '#root',
+    data: {
+      name: 'hello'
+    },
+    methods: {
+      showInfo(e) {
+        // e.preventDefault() // 阻止默认调用行为
+        alert('同学你好！')
+      }
+    }
+  })
+</script>
+```
+
+#### ②stop阻止事件冒泡
+
+知识点：任意事件被触发时总会经历两个阶段：【捕获阶段】和【冒泡阶段】。捕获阶段是【从父到子】的传导过程，冒泡阶段是【从子向父】的传导过程。
+
+**事件冒泡概念:**  当一个元素的事件被触发时，同样的事件将会在该元素的所有祖先元素中依次被触发。这一过程被称为事件冒泡。
+
+如下图示例，button的父元素是div class="demo1"，两个元素都有点击事件，点击事件都绑定了 showInfo 方法，在点击button后，会冒泡到其父元素的身上。
+
+之前的解决方法是  e.stopPropagation()。Vue中可以在click后面加 stop
+
+```html
+<body>
+  <!-- 阻止事件冒泡（常用） -->
+  <div id="root">
+    <div class="demo1" @click="showInfo">
+      <button @click.stop="showInfo">点我提示信息</button>
+    </div>
+  </div>
+
+</body>
+
+
+<script>
+	Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+
+  new Vue({
+    el:'#root',
+    data:{
+      name:'尚硅谷'
+    },
+    methods:{
+      showInfo(e){
+        // e.stopPropagation()
+        alert('哈哈')
+      }
+    }
+  })
+</script>
+```
+
+#### ③once事件只触发一次
+
+设置 @click.once 之后，点击按钮，只有第一次有弹框
+
+```html
+<body>
+  <!-- 阻止事件冒泡（常用） -->
+  <div id="root">
+    <div class="demo1">
+      <button @click.once="showInfo">点我提示信息</button>
+    </div>
+  </div>
+
+</body>
+
+
+<script>
+	Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+
+  new Vue({
+    el:'#root',
+    data:{
+      name:'尚硅谷'
+    },
+    methods:{
+      showInfo(e){
+        alert('哈哈')
+      }
+    }
+  })
+</script>
+```
+
+#### ④capture事件捕获
+
+有这么一个结构：
+
+<img src="img/image-20240316230730482.png" alt="image-20240316230730482" style="zoom:80%;" />
+
+刚开始div1 div2都有 点击事件（点击div2打印2，点击div1打印1），在点击div2的时候，捕获情况默认不反馈，所以打印顺序为：2 1。（这是事件冒泡）
+
+但是我们的需求是在捕获阶段就打印，所以用到capture。在外面的盒子的click上添加capture。此时打印顺序为 1 2
+
+![image-20240316231022198](img/image-20240316231022198.png)
+
+#### ⑤self 
+
+self:  只有event.target是当前操作的元素时才触发事件。
+
+从某种程度上 self也可以阻止冒泡
+
+![image-20240316231531102](img/image-20240316231531102.png)
+
+```html
+<body>
+  <!-- capture -->
+  <div id="root">
+    <!-- 只有event.target是当前操作的元素时才触发事件； -->
+    <div class="demo1" @click="showInfo">
+      <button @click="showInfo">点我提示信息</button>
+    </div>
+  </div>
+
+</body>
+
+
+<script>
+  new Vue({
+    el:'#root',
+    data:{
+      name:'尚硅谷'
+    },
+    methods:{
+      showInfo(e){
+        console.log(e.target)
+      }
+    }
+  })
+</script>
+```
+
+没处理之前，点击按钮，会打印点击的目标，且因为事件冒泡，再次打印。点击按钮时，不管是哪个元素调用了showInfo，他的 e.target都是 按钮。
+
+<img src="img/image-20240316231707890.png" alt="image-20240316231707890" style="zoom: 80%;" />
+
+此时对div加上 self，再次**点击按钮**，就不会打印两次。
+
+<img src="img/image-20240316231851074.png" alt="image-20240316231851074" style="zoom:80%;" />
+
+#### ⑥passive
+
+**passive：事件的默认行为立即执行，无需等待事件回调执行完毕**
+
+scroll滚动条的滚动（滚动条 鼠标上下），wheel滚动轮的滚动（鼠标的滚轮）。区别：滚动条在最底下的时候，鼠标滚轮滚动，wheel事件还可以触发，但是scroll不可以。
+
+滚动的流程是：滚动了鼠标的滚轮之后，首先触发滚动事件demo，先处理demo函数，处理完之后，再去执行默认行为（滚动条往下走）。但如果 demo函数非常耗时间，可能等了很久都不会有。
+
+但是加了passive之后事件的默认行为会立即执行。
+
+#### 多个事件修饰符一起使用
+
+![image-20240317161503672](img/image-20240317161503672.png)
+
+先阻止默认行为，再阻止冒泡
+
+## 08 键盘事件
+
+按下回车打印输入。
+
+① 绑定键盘事件：键盘事件有 keydown（按下） keyup（按下且松开）。② 因为是按下回车 才打印，所以借助 e中的keycode
+
+```html
+<body>
+  <div id="root">
+    <h1>欢迎来到{{name}}学习</h1>
+    <input type="text" placeholder="按下回车提示输入" @keyup="showInfo">
+  </div>
+</body>
+
+
+<script>
+  const vm = new Vue({
+    el: '#root',
+    data: {
+      name: 'hello'
+    },
+    methods: {
+      showInfo(e) {
+        // 要在按下回车时才触发，借助e中的keycode
+        // console.log(e.target.value);
+        // console.log(e.keyCode);
+        if(e.keyCode !== 13) return
+        console.log(e.target.value);
+      }
+    }
+  })
+</script>
+```
+
+在vue中借助 enter
+
+![image-20240317145333686](img/image-20240317145333686.png)
+
+<font color="Red">把常用的归为别名。</font>
+
+### 按键别名
+
+按键绑定事件
+
+- **Vue中常用的按键别名：**
+
+​       回车 => enter
+
+​       删除 => delete (捕获“删除”和“退格”键，backspace和delete都触发)
+
+​       退出 => esc
+
+​       空格 => space
+
+​       换行 => tab (特殊，必须配合keydown去使用)
+
+​       上 => up
+
+​       下 => down
+
+​       左 => left
+
+​       右 => right
+
+tab键本身就是把焦点从当前元素上切走，所以绑定keyup的时候，在抬起来的时候就切走了，就会导致keyup触发不了，所以他要配合keydown使用。
+
+- **Vue未提供别名的按键，可以使用按键原始的key值去绑定，但注意要转为kebab-case（短横线命名）**
+
+  补充：键盘中所有的按键都有自己的名字和按键编码。比如 回车键名字是 Enter，编码是13
+
+  注意：通过<font color="red">e.key获得他的名字。</font>但是注意 像CapsLock这样的名字，要转化为 caps-lock才能执行
+
+  ![image-20240317150145298](img/image-20240317150145298.png)
+
+- **系统修饰键（用法特殊）：ctrl、alt、shift、meta**
+
+​       (1).配合keyup使用：按下修饰键的同时，再按下其他键，随后释放其他键，事件才被触发。     
+
+​              比如按下ctrl+y触发
+
+​       (2).配合keydown使用：正常触发事件。
+
+- **也可以使用keyCode去指定具体的按键（不推荐，MDN中说明了keyCode已经被废弃）**
+
+- **Vue.config.keyCodes.自定义键名 = 键码，可以去定制按键别名**
+
+#### 多个按键
+
+输入CTRL+Y 才触发提示
+
+![image-20240317161704568](img/image-20240317161704568.png)
+
+## 09 计算属性与监视
+
+计算属性 Computed Properties
+
+- **示例 实现如下效果**
+
+<img src="img/image-20240317162634084.png" alt="image-20240317162634084" style="zoom: 80%;" />
+
+① 用插值语法实现：
+
+```html
+<body>
+  <!-- 准备好一个容器-->
+  <div id="root">
+    姓：<input type="text" v-model="firstName"> <br/><br/>
+    名：<input type="text" v-model="lastName"> <br/><br/>
+    全名：<span>{{firstName}}-{{lastName}}</span>
+  </div>
+</body>
+
+<script type="text/javascript">
+  Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+
+  new Vue({
+    el:'#root',
+    data:{
+      firstName:'张',
+      lastName:'三'
+    }
+  })
+</script>
+```
+
+② 用 methods实现
+
+<img src="img/image-20240317214009147.png" alt="image-20240317214009147" style="zoom:67%;" />
+
+fullName 没有写 箭头函数，它的this就是调用这个函数的对象，也就是 vm
+
+<font color="red">data发生变化的时候，模板（HTML标签部分）都需要重新解析一遍。如果模板里用到data中的值，就需要重新解析一边；如果调用了函数，就需要重新调用一遍</font>
+
+fullName调用了很多次，只要data中的值变化了，函数就调用一次
+
+### 计算属性
+
+<font color="red">**③ 计算属性**</font>
+
+属性：对于Vue来说，他认为data里面的都是属性
+
+计算属性：把原本data中的属性加工
+
+```html
+<body>
+  <!-- 准备好一个容器-->
+  <div id="root">
+    姓：<input type="text" v-model="firstName"> <br/><br/>
+    名：<input type="text" v-model="lastName"> <br/><br/>
+    测试：<input type="text" v-model="x"> <br/><br/>
+    全名：<span>{{fullName}}</span> <br/><br/>
+    <!-- 全名：<span>{{fullName}}</span> <br/><br/>
+    全名：<span>{{fullName}}</span> <br/><br/>
+    全名：<span>{{fullName}}</span> -->
+  </div>
+</body>
+
+<script type="text/javascript">
+
+  const vm = new Vue({
+    el:'#root',
+    data:{
+      firstName:'张',
+      lastName:'三',
+      x:'你好'
+    },
+    computed:{
+      fullName:{
+        //get有什么作用？当有人读取fullName时，get就会被调用，且返回值就作为fullName的值
+        //get什么时候调用？1.初次读取fullName时。2.所依赖的数据发生变化时。
+        get(){
+          console.log('get被调用了')
+          // console.log(this) //此处的this是vm
+          return this.firstName + '-' + this.lastName
+        },
+        //set什么时候调用? 当fullName被修改时。
+        set(value){
+          console.log('set',value)
+          const arr = value.split('-')
+          this.firstName = arr[0]
+          this.lastName = arr[1]
+        }
+      }
+    }
+  })
+</script>
+```
+
+打印vm：
+
+发现属性、计算属性都在 vm身上，怎么区分？ vm._data中存放了 data里的所有属性，但是没有计算属性。
+
+<img src="img/image-20240317215247112.png" alt="image-20240317215247112" style="zoom: 80%;" />
+
+<img src="img/image-20240317222952877.png" alt="image-20240317222952877" style="zoom:80%;" />
+
+#### 使用细节
+
+计算属性：
+
+1.定义：要用的属性不存在，要通过**已有属性**计算得来。
+
+2.原理：底层借助了Objcet.defineproperty方法提供的getter和setter。
+
+3.get函数什么时候执行？
+
+​       (1).初次读取时会执行一次。
+
+​       (2).当依赖的数据发生改变时会被再次调用。
+
+4.优势：与methods实现相比，内部有缓存机制（复用），效率更高，调试方便。
+
+5.备注：
+
+​      (1).计算属性最终会出现在vm上，直接读取使用即可。
+
+​      (2).如果计算属性要被修改，那必须写set函数去响应修改，且set中要引起计算时依赖的数据发生改变。
+
+#### 计算属性简写
+
+一般来说 计算属性 不会被修改，所以只剩下get函数，所以引申出这种 简写模式
+
+```javascript
+const vm = new Vue({
+el:'#root',
+data:{
+  firstName:'张',
+  lastName:'三',
+},
+computed:{
+  //完整写法
+  /* fullName:{
+    get(){
+      console.log('get被调用了')
+      return this.firstName + '-' + this.lastName
+    },
+    set(value){
+      console.log('set',value)
+      const arr = value.split('-')
+      this.firstName = arr[0]
+      this.lastName = arr[1]
+    }
+  } */
+  //简写
+  fullName(){
+    console.log('get被调用了')
+    return this.firstName + '-' + this.lastName
+  }
+  /*
+  相当于 
+  fullName: function(){  这个function就表示 get函数
+    console.log('get被调用了')
+    return this.firstName + '-' + this.lastName
+  }
+  */
+}
+})
+```
+
+### 监视属性 watch
+
+侦听器 Watchers
+
+- 示例
+
+实现下面的案例
+
+![image-20240317225356589](img/image-20240317225356589.png)
+
+```html
+<body>
+  <div id="root">
+    <h2>今天天气很{{info}}</h2>
+    <button @click="changeWeather">切换天气</button>
+    <!-- 也可以这么写，但是this要去掉
+      <button @click="isHot = !isHot">切换天气</button> 
+      这里会去 vm身上找
+    -->
+  </div>
+</body>
+
+<script type="text/javascript">
+  Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+  
+  const vm = new Vue({
+    el:'#root',
+    data:{
+      isHot:true,
+    },
+    computed:{
+      info(){ // 计算属性的简写方式 
+        return this.isHot ? '炎热' : '凉爽'
+      }
+    },
+    methods: {
+      changeWeather(){
+        this.isHot = !this.isHot
+      }
+    },
+  })
+</script>
+```
+
+（BV1Zy4y1K7SH，P21）Vue在这种情况下会有一个小问题：当模板中没有用到data属性、计算属性时，点击按钮数据发生改变，但是开发工具上不会显示。
+
+ 
