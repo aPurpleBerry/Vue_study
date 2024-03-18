@@ -1021,6 +1021,8 @@ computed:{
 
 ![image-20240317225356589](img/image-20240317225356589.png)
 
+- ① methods实现
+
 ```html
 <body>
   <div id="root">
@@ -1058,3 +1060,368 @@ computed:{
 （BV1Zy4y1K7SH，P21）Vue在这种情况下会有一个小问题：当模板中没有用到data属性、计算属性时，点击按钮数据发生改变，但是开发工具上不会显示。
 
  
+
+#### watch使用细节
+
+<font color="red">**监视属性watch：**</font>
+
+​     1.当被监视的属性变化时, 回调函数(handler immediate)自动调用, 进行相关操作
+
+​     2.监视的属性必须存在，才能进行监视！data里的属性和计算属性都可以
+
+​     3.监视的两种写法：
+
+​       (1).new Vue时传入watch配置
+
+​       (2).通过vm.$watch监视
+
+![image-20240318143047451](img/image-20240318143047451.png)
+
+#### 深度监视
+
+深度监视：
+
+​      (1).Vue中的watch默认不监测对象内部值的改变（一层）。
+
+​      (2).配置deep:true可以监测对象内部值改变（多层）。
+
+备注：
+
+​      (1).Vue自身可以监测对象内部值的改变，但Vue提供的watch默认不可以！
+
+​      (2).使用watch时根据数据的具体结构，决定是否采用深度监视。
+
+```javascript
+const vm = new Vue({
+  el:'#root',
+  data:{
+    numbers:{ // 有很多数字
+      a:1,
+      b:1,
+      c:{
+        d:{
+          e:100
+        }
+      }
+    }
+    // 解释：data中的number属性地址为0x123，其地址指向一个对象，但Vue检测的是numbers中存储的内容
+    // 也就是地址，地址不变 他不变
+  },
+  watch:{
+    //监视多级结构中某个属性的变化
+    /* 'numbers.a':{
+      handler(){
+        console.log('a被改变了')
+      }
+    } */
+    //监视多级结构中所有属性的变化
+    numbers:{
+      deep:true,
+      handler(){
+        console.log('numbers改变了')
+      }
+    }
+  }
+})
+```
+
+#### 监视属性简写
+
+简写1
+
+![image-20240318144624139](img/image-20240318144624139.png)
+
+简写2
+
+![image-20240318144701783](img/image-20240318144701783.png)
+
+### computed和watch区别
+
+**computed和watch之间的区别：**
+
+1.computed能完成的功能，watch都可以完成。
+
+2.watch能完成的功能，computed不一定能完成，例如：watch可以进行异步操作。
+
+
+
+**两个重要的小原则：**
+
+1.所被Vue管理的函数，最好写成普通函数，这样this的指向才是vm 或 组件实例对象。
+
+2.所有不被Vue所管理的函数（定时器的回调函数、ajax的回调函数等、Promise的回调函数），最好写成箭头函数，这样this的指向才是vm 或 组件实例对象。
+
+- 示例
+
+![image-20240318210614126](img/image-20240318210614126.png)
+
+这里的setTimeOut里有回调函数，且用箭头函数写法，但请注意这里面的this。如果这里不写箭头函数问题就大了：因为定时器设置的时间到了之后，是系统window调用的回调函数，this就是window。但如果写成了箭头函数， 虽然也是window调用的回调函数，但是箭头函数就会失去了自己的this，就会往外找，外函数就是 firstName，是一个普通函数，是vue管理的函数
+
+## 10 class 与 style 绑定
+
+绑定样式：
+
+​     **1. class样式**
+
+​          写法:class="xxx" xxx可以是字符串、对象、数组。
+
+​          字符串写法适用于：类名不确定，要动态获取。
+
+​          对象写法适用于：要绑定多个样式，个数不确定，名字也不确定。
+
+​          数组写法适用于：要绑定多个样式，个数确定，名字也确定，但不确定用不用。
+
+​     **2. style样式**
+
+​        :style="{fontSize: xxx}"其中xxx是动态值。 小驼峰写法
+
+​        :style="[a,b]"其中a、b是样式对象。
+
+
+
+- 示例
+
+![image-20240318215807267](img/image-20240318215807267.png)
+
+点击div之后 样式发生变化
+
+之前的写法：document.querySelector('.demo').classList.add('normal')
+
+```html
+<body>
+  <div id="root">
+  <!-- 需求一: div为normal样式;点击div之后,随机写换class -->
+    <!-- 绑定class样式--字符串写法，适用于：样式的类名不确定，需要动态指定 -->
+    <div class="basic" :class="mood" @click="changeMood">{{name}}</div> <br/><br/>
+
+  <!-- 需求二:除了基本样式,atguigu1 atguigu2 atguigu3不确定有几个 -->
+    <!-- 绑定class样式--数组写法，适用于：要绑定的样式个数不确定、名字也不确定 
+        可以通过对数组 vm.classArr 的增删改 改变绑定的样式-->
+    <div class="basic" :class="classArr">{{name}}</div> <br/><br/>
+  
+  <!-- 需求三: atguigu1 atguigu2二选一 -->
+    <!-- 绑定class样式--对象写法，适用于：要绑定的样式个数确定、名字也确定，但要动态决定用不用 -->
+    <div class="basic" :class="classObj">{{name}}</div> <br/><br/>
+
+    <!-- 绑定style样式--对象写法 -->
+    <div class="basic" :style="styleObj">{{name}}</div> <br/><br/>
+    <!-- 绑定style样式--数组写法 -->
+    <div class="basic" :style="styleArr">{{name}}</div>
+  </div>
+</body>
+
+<script type="text/javascript">
+  Vue.config.productionTip = false
+  
+  const vm = new Vue({
+    el:'#root',
+    data:{
+      name:'尚硅谷',
+      mood:'normal',
+      classArr:['atguigu1','atguigu2','atguigu3'],
+      classObj:{
+        atguigu1:false,
+        atguigu2:false,
+      },
+      styleObj:{
+        fontSize: '40px',
+        color:'red',
+      },
+      styleObj2:{
+        backgroundColor:'orange'
+      },
+      styleArr:[
+        {
+          fontSize: '40px',
+          color:'blue',
+        },
+        {
+          backgroundColor:'gray'
+        }
+      ]
+    },
+    methods: {
+      changeMood(){
+        const arr = ['happy','sad','normal']
+        const index = Math.floor(Math.random()*3)
+        this.mood = arr[index]
+      }
+    },
+  })
+</script>
+```
+
+## 11 条件渲染
+
+Conditional Rendering
+
+### 条件渲染指令
+
+1. v-if 与 v-else
+2. v-show
+
+
+
+<font color="red">**1.v-if**</font>
+
+   **写法：**
+
+​     (1).v-if="表达式" 
+
+​     (2).v-else-if="表达式"
+
+​     (3).v-else="表达式"
+
+   适用于：切换频率较低的场景。
+
+   **特点：**不展示的DOM元素直接被移除。
+
+   **注意：**v-if可以和:v-else-if、v-else一起使用，但要求结构不能被“打断”。
+
+​              v-if与template的配合使用，注意template只能搭配 v-if 不能搭配 v-show
+
+<font color="red">**2.v-show**</font>
+
+   **写法：**v-show="表达式" 底层逻辑是调整样式display
+
+   适用于：切换频率较高的场景。
+
+   **特点：**不展示的DOM元素未被移除，仅仅是使用样式隐藏掉
+
+ 
+
+3.备注：使用v-if的时，元素可能无法获取到，而使用v-show一定可以获取到。
+
+
+
+- 示例 v-show和v-if
+
+```html
+<!-- 使用v-show做条件渲染 -->
+<h2 v-show="false">欢迎来到{{name}}</h2>
+<h2 v-show="1 === 1">欢迎来到{{name}}</h2> 
+
+<!-- 使用v-if做条件渲染 -->
+<h2 v-if="false">欢迎来到{{name}}</h2>
+<h2 v-if="1 === 1">欢迎来到{{name}}</h2> 
+```
+
+- v-if与template的配合使用
+
+如果这里写了 ```<div>```就相当于破坏了结构，因为页面中三个h2不需要div包起来，使用template不会破坏结构。**注意template只能搭配 v-if 不能搭配 v-show**
+
+```html
+<template v-if="n === 1">
+  <h2>你好</h2>
+  <h2>尚硅谷</h2>
+  <h2>北京</h2>
+</template>
+```
+
+
+
+### 比较 v-if 与 v-show
+
+1. 如果需要频繁切换 v-show 较好
+2. 当条件不成立时, v-if 的所有子节点不会解析(项目中使用)
+
+## 12 列表渲染
+
+### **列表显示指令**
+
+遍历数组: v-for / index
+
+遍历对象: v-for / key
+
+- 示例：遍历数组
+
+注意①想让谁重复 v-for就写在谁身上 
+
+注意②(p,index) **of** persons或者 (p,index) **in** persons 都行
+
+注意③index必须要有 
+
+注意④  v-for="(value,index)"顺序不能变化
+
+<img src="img/image-20240318223941338.png" alt="image-20240318223941338" style="zoom:80%;" />
+
+```html
+<div id="root">
+  <!-- 遍历数组 -->
+  <h2>人员列表（遍历数组）</h2>
+  <ul>
+    <li v-for="(p,index) of persons" :key="index">
+      {{p.name}}-{{p.age}}   
+    </li>
+      <!-- 插值语法内 变量的值 来自于 data属性 或者 还没被计算出来的计算属性 或者 v-指令=""中的 -->
+  </ul>
+</div>
+
+<script type="text/javascript">
+  new Vue({
+    el:'#root',
+    data:{
+      persons:[
+        // 每一个人都必须有一个唯一的标识
+        {id:'001',name:'张三',age:18},
+        {id:'002',name:'李四',age:19},
+        {id:'003',name:'王五',age:20}
+      ]
+    }
+  })
+</script>
+```
+
+效果为：
+
+![image-20240318223726583](img/image-20240318223726583.png)
+
+- 示例：遍历对象、字符串、指定次数
+
+遍历对象的时候 v-for="(value,key) in car" key是键
+
+遍历字符串 每一个 是它的字符
+
+```html
+<!-- 遍历对象 -->
+<h2>汽车信息（遍历对象）</h2>
+<ul>
+  <li v-for="(value,k) of car" :key="k">
+    {{k}}-{{value}}
+  </li>
+</ul>
+
+<!-- 遍历字符串 -->
+<h2>测试遍历字符串（用得少）</h2>
+<ul>
+  <li v-for="(char,index) of str" :key="index">
+    {{char}}-{{index}}
+  </li>
+</ul>
+
+<!-- 遍历指定次数 -->
+<h2>测试遍历指定次数（用得少）</h2>
+<ul>
+  <li v-for="(number,index) of 5" :key="index">
+    {{index}}-{{number}}
+  </li>
+</ul>
+</div>
+
+<script type="text/javascript">
+  Vue.config.productionTip = false
+  
+  new Vue({
+    el:'#root',
+    data:{
+      car:{
+        name:'奥迪A8',
+        price:'70万',
+        color:'黑色'
+      },
+      str:'hello'
+    }
+  })
+</script>
+```
+
