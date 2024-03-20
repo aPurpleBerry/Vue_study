@@ -1425,3 +1425,412 @@ Conditional Rendering
 </script>
 ```
 
+### key的原理
+
+- index作为key  出现问题
+
+<img src="img/image-20240319145825731.png" alt="image-20240319145825731" style="zoom:80%;" />
+
+在虚拟DOM中，发现 ：“老刘-30”和“张三-18”不一样， 重新渲染；input是一样的，复用
+
+- 上述例子用 ID（数据的唯一标识）作为key就没问题
+
+<img src="img/image-20240319150305781.png" alt="image-20240319150305781" style="zoom:80%;" />
+
+<font color="Red">如果在v-for遍历的时候，没有指定key，那么vue默认用index作为key</font>
+
+#### key原理总结
+
+- <font color="Red">面试题：react、vue中的key有什么作用？**（key的内部原理）**</font>
+      
+
+1. **虚拟DOM中key的作用：**
+        key是虚拟DOM对象的标识，当数据发生变化时，Vue会根据【新数据】生成【新的虚拟DOM】, 
+        随后Vue进行【新虚拟DOM】与【旧虚拟DOM】的差异比较，比较规则如下：
+        
+
+2. **对比规则：**
+   (1).旧虚拟DOM中找到了与新虚拟DOM相同的key：
+               ①.若虚拟DOM中内容没变, 直接使用之前的真实DOM！
+               ②.若虚拟DOM中内容变了, 则生成新的真实DOM，随后替换掉页面中之前的真实DOM。
+
+​        (2).旧虚拟DOM中未找到与新虚拟DOM相同的key
+​            创建新的真实DOM，随后渲染到到页面。
+​            
+
+3. **用index作为key可能会引发的问题：**
+          1. 若对数据进行：逆序添加、逆序删除等破坏顺序操作:
+                  会产生没有必要的真实DOM更新 ==> 界面效果没问题, 但效率低。
+
+              2. 如果结构中还包含输入类的DOM：
+                  会产生错误DOM更新 ==> 界面有问题。
+
+4. **开发中如何选择key?**
+          1.最好使用每条数据的唯一标识作为key, 比如id、手机号、身份证号、学号等唯一值。
+          2.如果不存在对数据的逆序添加、逆序删除等破坏顺序操作，仅用于渲染列表用于展示，
+            使用index作为key是没有问题的。
+
+### 列表过滤(模糊搜索)
+
+<img src="img/image-20240319152815647.png" alt="image-20240319152815647" style="zoom: 67%;" />
+
+①收集用户输入的数据 keyword：v-model （页面中的输入回流到vue中）
+
+②拿着keyword去原数据中过滤
+
+什么时候会过滤？当用户输入的数据发生变化，就必须过滤；怎么知道keyword发生变化？watch。这里还需要注意 watch能做的，computed都可以实现。
+
+
+
+- 示例
+
+数组方法 filter返回的是筛选后的值，原数组不受影响，返回一个新数组。indexOf方法返回目标数据下标
+
+**① 用watch实现**
+
+请注意 watch 中的 immediate:true,配置项。
+
+每一个字符中都包含空字符串，immediate:true最开始就调用一次，空串都匹配。
+
+如果不加，那最开始页面是不会有值的。
+
+```javascript
+new Vue({
+el:'#root',
+data:{
+  keyWord:'',
+  persons:[
+    {id:'001',name:'马冬梅',age:19,sex:'女'},
+    {id:'002',name:'周冬雨',age:20,sex:'女'},
+    {id:'003',name:'周杰伦',age:21,sex:'男'},
+    {id:'004',name:'温兆伦',age:22,sex:'男'}
+  ],
+  filPerons:[]
+},
+watch:{
+  keyWord:{
+    immediate:true,
+    handler(val){
+      this.filPerons = this.persons.filter((p)=>{
+        return p.name.indexOf(val) !== -1
+      })
+    }
+  }
+}
+}) 
+```
+
+**② 用 computed 实现**
+
+补充一下vscode里的小技巧：//#region  （中间是注释代码） //#endregion，就可以折叠了。
+
+![image-20240319155748241](img/image-20240319155748241.png)
+
+一个return是数组filter方法要求返回的；一个是计算属性要求返回值。
+
+计算属性的调用时机：① 页面刷新 ②计算依赖的属性变化时
+
+### 列表排序
+
+<img src="img/image-20240319155943938.png" alt="image-20240319155943938" style="zoom:80%;" />
+
+**注意：排序过滤不分家。**
+
+思路 给三个按钮绑定共同的变量
+
+<img src="img/image-20240319160902486.png" alt="image-20240319160902486" style="zoom:80%;" />
+
+<img src="img/image-20240319160944376.png" alt="image-20240319160944376" style="zoom:80%;" />
+
+### Vue检测数据原理（重要,没太听懂）
+
+BV1Zy4y1K7SH P34-P37
+
+vue默认有一个监视， 只要更改了data中的数据他就会检测到；提供了watch配置项。
+
+- 更新时的一个问题
+
+点击之后修改数据，一个奏效一个不奏效。
+
+<img src="img/image-20240319162814590.png" alt="image-20240319162814590" style="zoom:80%;" />
+
+
+
+
+
+vue数据代理：在实例化 Vue 对象时，Vue 会将传入的 data 对象的属性都添加到实例的 _data 对象中，并实现数据代理，使得这些属性能够被实例直接访问
+
+vue.set()追加一个属性，```vue.set(vm._data.student, 'sex', '男')``` 。或者 ```vm.$set(vm._data.student, 'sex', '男')```  ; 或者   vue.set(vm.student, 'sex', '男') 和 vm.$set(vm.student, 'sex', '男')。局限性：不能挂在实例对象vm上或者vm的根目录 vm._data上
+
+vue监测数据原理（自己模拟一个数据监测）
+
+数组的数据监视，发现数组的每一个成员，没有像对象和对象成员那样匹配一个setter getter，所以不可以通过**数组下标**修改数组元素。但是通过七个操作数组的方法 push shift splice ，vue就可以检测到。那vue为什么可以检测到呢？因为vue包装了这些方法。<img src="img/image-20240320151745851.png" alt="image-20240320151745851" style="zoom:67%;" />
+
+
+
+ <font color="red">**Vue监视数据的原理：**</font>
+
+​    1. vue会监视data中所有层次的数据。
+
+​    2. 如何监测对象中的数据？
+
+​        通过setter实现监视，且要在new Vue时就传入要监测的数据。
+
+​         (1).对象中后追加的属性，Vue默认不做响应式处理
+
+​         (2).如需给后添加的属性做响应式，请使用如下API：
+
+​             Vue.set(target，propertyName/index，value) 或 
+
+​             vm.$set(target，propertyName/index，value)
+
+​    3. 如何监测数组中的数据？
+
+​         通过包裹数组更新元素的方法实现，本质就是做了两件事：
+
+​          (1).调用原生对应的方法对数组进行更新。
+
+​          (2).重新解析模板，进而更新页面。
+
+​    4.在Vue修改数组中的某个元素一定要用如下方法：
+
+​       1.使用这些API:**push()、pop()、shift()、unshift()、splice()、sort()、reverse()**
+
+​       2.Vue.set() 或 vm.$set()
+
+​    特别注意：Vue.set() 和 vm.$set() 不能给vm 或 vm的根数据对象 添加属性！！！
+
+​    5.数据劫持
+
+## 13 收集表单数据
+
+form 表单中的action 属性，意思是提交到哪一个地址，但是一般不用
+
+label 中的 for和表单id绑定
+
+点击按钮会引起表单提交，表单提交完了 默认的动作就是跳转页面，
+
+v-model默认收集输入框的value值
+
+![image-20240320162234345](img/image-20240320162234345.png)
+
+- v-model的修饰符
+
+![image-20240320162908565](img/image-20240320162908565.png)
+
+![image-20240320162953479](img/image-20240320162953479.png)
+
+trim去掉前后空格、number收集为数字、lazy失去焦点时再收集数据
+
+
+
+<font color="red">**收集表单数据：**</font>
+
+若：```<input type="text"/>```，则v-model收集的是value值，用户输入的就是value值。
+
+若：```<input type="radio"/>```，则v-model收集的是value值，且要给标签配置value值。
+
+若：```<input type="checkbox"/>```
+
+​       1.没有配置input的value属性，那么收集的就是checked（勾选 or 未勾选，是布尔值）
+
+​       2.配置input的value属性:
+
+​         (1)v-model的初始值是非数组，那么收集的就是checked（勾选 or 未勾选，是布尔值）
+
+​         (2)v-model的初始值是数组，那么收集的的就是value组成的数组
+
+备注：v-model的三个修饰符：
+
+​         lazy：失去焦点再收集数据
+
+​         number：输入字符串转为有效的数字
+
+​         trim：输入首尾空格过滤
+
+
+
+## 14 过滤器
+
+*Filters* 
+
+本节以时间戳转换为时间为例。Date.now()拿到当前时间的时间戳，之前的方法是 调用day.js第三方库中的方法，对这个时间戳进行过滤，处理为可以看懂的时间。再引入过滤器。
+
+> BootCDN: 免费提供好用的第三方库的网站。有几个库比较出名 moment.js，day.js。
+
+<font color="red">**过滤器：**</font>
+
+ 定义：对要显示的数据进行特定格式化后再显示（适用于一些简单逻辑的处理）。本质是一个函数。
+
+ 语法：
+
+   1.注册过滤器：【全局过滤器】Vue.filter(name,callback) 必须在创建vue实例前注册好过滤器
+
+​                         或 【局部过滤器】new Vue{filters:{}}
+
+   2.使用过滤器：{{ xxx | 过滤器名}}  或  v-bind:属性 = "xxx | 过滤器名"
+
+ 备注：
+
+   1.过滤器也可以接收额外参数、多个过滤器也可以串联
+
+   2.并没有改变原本的数据, 是产生新的对应的数据
+
+## 15 内置指令
+
+Built-in Directives
+
+### v-text
+
+特点 不会解析标签
+
+1.作用：向其所在的节点中渲染文本内容。
+
+2.与插值语法的区别：v-text会替换掉节点中的内容，{{xx}}则不会。
+
+```html
+  <div id="root">
+    <div>你好，{{name}}</div>
+    <div v-text="name"></div>
+    <div v-text="str"></div>
+  </div>
+
+<script type="text/javascript">
+  Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+  
+  new Vue({
+    el:'#root',
+    data:{
+      name:'尚硅谷',
+      str:'<h3>你好啊！</h3>'
+    }
+  })
+</script>
+```
+
+<img src="img/image-20240320170643819.png" alt="image-20240320170643819" style="zoom:80%;" />
+
+### v-html
+
+1. 作用：向指定节点中渲染包含html结构的内容。
+
+2. 与插值语法的区别：
+
+    (1). v-html会替换掉节点中所有的内容，{{xx}}则不会。
+
+    (2). v-html可以识别html结构。
+
+3. 严重注意：v-html有安全性问题！！！！
+
+    (1). 在网站上动态渲染任意HTML是非常危险的，容易导致XSS攻击。
+
+    (2). 一定要在可信的内容上使用v-html，永不要用在用户提交的内容上！
+
+
+
+**Node.js cookie**
+
+登录GitHub 用户名密码 点击登录跳转，按理来说应该跳转到用户中心个人页面。点击《查看我所有的仓库》，应该会跳转到另一个界面跳转到仓库。第一次跳转到个人页面是因为我的账户密码是没问题的，第二次跳转，不需要再次输入用户名密码。比如还有一些网站七天免登录。这种功能最好用cookie实现。
+
+<img src="img/image-20240320171540238.png" alt="image-20240320171540238" style="zoom:80%;" />
+
+<img src="img/image-20240320171702228.png" alt="image-20240320171702228" style="zoom:80%;" />
+
+### v-cloak
+
+当网速过慢的时候 可以不让未经解析的模板跑到页面上
+
+v-cloak指令（没有值）：
+
+  1.本质是一个特殊属性，Vue实例创建完毕并接管容器后，会删掉v-cloak属性。
+
+  2.使用css配合v-cloak可以解决网速慢时页面展示出{{xxx}}的问题。
+
+### v-once
+
+v-once指令：
+
+   1.v-once所在节点在初次**动态渲染**后，就视为**静态内容**了。
+
+   2.以后数据的改变不会引起v-once所在结构的更新，可以用于优化性能。
+
+```html
+<div id="root">
+  <h2 v-once>初始化的n值是:{{n}}</h2>
+  <h2>当前的n值是:{{n}}</h2>
+  <button @click="n++">点我n+1</button>
+</div>
+</body>
+
+<script type="text/javascript">
+  Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+  
+  new Vue({
+    el:'#root',
+    data:{
+      n:1
+    }
+  })
+</script>
+```
+
+
+
+### v-pre
+
+v-pre指令：
+
+  1.跳过其所在节点的编译过程。
+
+  2.可利用它跳过：**没有使用指令语法、没有使用插值语法的节点，会加快编译。**
+
+```html
+<div id="root">
+  <h2 v-pre>Vue其实很简单</h2>
+  <h2 >当前的n值是:{{n}}</h2>
+  <button @click="n++">点我n+1</button>
+</div>
+
+<script type="text/javascript">
+  new Vue({
+    el:'#root',
+    data:{
+      n:1
+    }
+  })
+</script>
+```
+
+## 16 自定义指令
+
+Custom Directives
+
+```html
+<div id="root">
+  <h2>{{name}}</h2>
+  <h2>当前的n值是：<span v-text="n"></span> </h2>
+  <h2>放大10倍后的n值是：<span v-big="n"></span> </h2>
+  <button @click="n++">点我n+1</button>
+</div>
+	</body>
+	
+<script type="text/javascript">
+new Vue({
+  el:'#root',
+  data:{
+    name:'尚硅谷',
+    n:1
+  },
+  directives:{
+    // big函数何时会被调用？1.指令与元素成功绑定时（一上来）。
+    // 2.指令所在的模板被重新解析时。
+    big(element,binding){
+      console.log('big',this) //注意此处的this是window
+      // console.log('big')
+      element.innerText = binding.value * 10
+    }
+  }
+})
+</script>
+```
+
