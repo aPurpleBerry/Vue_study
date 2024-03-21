@@ -264,6 +264,8 @@ Vue模板语法有两大类：
 
 ​         (2).函数式
 
+<img src="img/image-20240321164052969.png" alt="image-20240321164052969" style="zoom:50%;" />
+
 如何选择：目前哪种写法都可以，以后学习到组件时，data必须使用函数式，否则会报错。
 
 ​     3.一个重要的原则：
@@ -277,6 +279,8 @@ const x = new Vue({})
 console.log(x)
 ```
 
+**控制台:**
+
 ![image-20240315211950600](img/image-20240315211950600.png)
 
 输出的是 x（vue的实例），
@@ -287,11 +291,11 @@ console.log(x)
 
 这里使用 $mount
 
-![image-20240315212306752](img/image-20240315212306752.png)
+<img src="img/image-20240315212306752.png" alt="image-20240315212306752" style="zoom:67%;" />
 
 ### data 的两种写法
 
-- 第一种写法 对象是=式
+- 第一种写法 对象是对象式
 
 ```html
 <body>
@@ -315,7 +319,7 @@ console.log(x)
 
 - 第二种写法 函数式
 
-data: function() {}  此处的this是vue对象，不能改成箭头函数
+data: function() {}  此处的this是vue对象，<font color="red">不能改成箭头函数</font>
 
 ```javascript
   const x2 = new Vue({
@@ -498,6 +502,8 @@ Object.defineProperty(obj2,'x',{
 1. Vue中的数据代理：
 
 ​       通过vm对象来代理data对象中属性的操作（读/写）
+
+​       在vm对象中注册data，这样data对象中的数据变化的时候，       
 
 ​    2. Vue中数据代理的好处：  
 
@@ -1805,6 +1811,8 @@ v-pre指令：
 
 Custom Directives
 
+- v-big
+
 ```html
 <div id="root">
   <h2>{{name}}</h2>
@@ -1834,3 +1842,130 @@ new Vue({
 </script>
 ```
 
+- v-fbind
+
+需求，给input输入框 自动获取焦点
+
+以下这种写法 在页面刷新后没效果。
+
+<img src="img/image-20240321145521031.png" alt="image-20240321145521031" style="zoom:80%;" />
+
+没效果的原因和下面代码一样，都是因为没有先放在页面上：
+
+<img src="img/image-20240321145321049.png" alt="image-20240321145321049" style="zoom:80%;" />
+
+这里就需要指令内部的函数：注意bind和update的业务逻辑一般是一样的
+
+<img src="img/image-20240321150157531.png" alt="image-20240321150157531" style="zoom:67%;" />
+
+### 注意事项
+
+- 1） 指令命名 多个单词的情况	
+
+<img src="img/image-20240321150653381.png" alt="image-20240321150653381" style="zoom:67%;" />			
+
+- 2）this 都是window
+
+出现在directives中的都是指令，指令都是用来操作元素的，
+
+ <img src="img/image-20240321150926525.png" alt="image-20240321150926525" style="zoom:67%;" />
+
+- 3）都是局部指令，只针对于当前的vue实例
+
+**全局指令的写法：（注意要写在创建实例之前）**		
+
+​							<img src="img/image-20240321151351886.png" alt="image-20240321151351886" style="zoom:67%;" />
+
+### 使用细节
+
+**一、定义语法：**
+
+ (1).局部指令：
+
+```vue
+  new Vue({                               new Vue({
+
+     directives:{指令名:配置对象}    或         directives{指令名:回调函数}
+
+  })                                      })
+```
+
+
+
+ (2).全局指令：
+
+  Vue.directive(指令名,配置对象) 或  Vue.directive(指令名,回调函数)
+
+
+
+**二、配置对象中常用的3个回调：**
+
+ (1).bind：指令与元素成功绑定时调用。
+
+ (2).inserted：指令所在元素被插入页面时调用。
+
+ (3).update：指令所在模板结构被重新解析时调用。
+
+
+
+**三、备注：**
+
+ 1.指令定义时不加v-，但使用时要加v-；
+
+ 2.指令名如果是多个单词，要使用kebab-case命名方式（比如 user-name），不要用camelCase命名（比如 userName）。
+
+## 17 生命周期
+
+Lifecycle
+
+### 引入
+
+- 实例：VUE在闪烁
+
+  写法一：
+
+<img src="img/image-20240321152816856.png" alt="image-20240321152816856" style="zoom:80%;" />
+
+change中修改了 data里面的数据，然后vue检测到了就重新刷新模板，模板中再次调用change=>循环开启了定时器
+
+<img src="img/image-20240321153433187.png" alt="image-20240321153433187" style="zoom:80%;" />
+
+<font color="Red">**解决方法 mount函数**</font>
+
+vue找到模板，解析成虚拟DOM，然后转换真实DOM，然后把真实DOM元素**放入（挂载）**页面
+
+**Vue完成模板的解析并把<font color="red">初始的</font>真实DOM元素放入页面（挂载完毕后）<font color="red">后</font> 调用 mounted**
+
+
+
+### 概念
+
+生命周期
+
+ 1.又名：生命周期回调函数、生命周期函数、生命周期钩子。
+
+ 2.是什么：Vue在关键时刻帮我们调用的一些特殊名称的函数。
+
+ 3.生命周期函数的名字不可更改，但函数的具体内容是程序员根据需求编写的。
+
+ 4.生命周期函数中的this指向是 ① vm 或 ②组件实例对象。
+
+
+
+<img src="img/生命周期.png" alt="生命周期" style="zoom:80%;" />
+
+常用的生命周期钩子：
+
+ 1.mounted: 发送ajax请求、启动定时器、绑定自定义事件、订阅消息等【初始化操作】。
+
+ 2.beforeDestroy: 清除定时器、解绑自定义事件、取消订阅消息等【收尾工作】。
+
+
+
+关于销毁Vue实例
+
+ 1.销毁后借助Vue开发者工具看不到任何信息。
+
+ 2.销毁后自定义事件会失效，但原生DOM事件依然有效。
+
+ 3.一般不会在beforeDestroy操作数据，因为即便操作数据，也不会再触发更新流程了。
