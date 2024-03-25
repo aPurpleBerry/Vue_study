@@ -8,15 +8,15 @@
 
 - 传统方式的局限性
 
-<img src="img/image-20240321204253212.png" alt="image-20240321204253212" style="zoom:80%;" />
+ <img src="img/image-20240321204253212.png" alt="image-20240321204253212" style="zoom: 50%;" />
 
 - 组件方式编写
 
-<img src="img/image-20240321204438961.png" alt="image-20240321204438961" style="zoom:80%;" />
+ <img src="img/image-20240321204438961.png" alt="image-20240321204438961" style="zoom: 50%;" />
 
 **组件的定义—实现应用中局部功能代码和资源的集合**
 
-![image-20240321204637600](img/image-20240321204637600.png)
+ <img src="img/image-20240321204637600.png" alt="image-20240321204637600" style="zoom:50%;" />
 
 ### 概念
 
@@ -591,3 +591,246 @@ vue.config.js
 
 使用 vue inspect > output.js可以查看到 Vue 脚手架的默认配置.
 使用 vue.config.js 可以对脚手架进行个性化定制，详情见: https://cli.vuejs.org/zh
+
+### ref 属性
+
+想拿到一个DOM节点，不使用原生JS方法，就需要借助ref属性。
+
+<img src="img/image-20240325145602228.png" alt="image-20240325145602228" style="zoom:80%;" />
+
+
+
+**注意 也可以给组件标签加上一个ref**
+
+<img src="img/image-20240325145752964.png" alt="image-20240325145752964" style="zoom: 80%;" />
+
+第二个输出为 school 组件
+
+<img src="img/image-20240325145854752.png" alt="image-20240325145854752" style="zoom:80%;" />
+
+注意 ref拿到的是组件实例对象，id（document.querySelector）拿到的是DOM 元素
+
+<font color="red">**ref属性 总结：**</font>
+
+1.被用来给元素或子组件注册引用信息(id的替代者)
+
+2.应用在html标签上获取的是真实DOM元素，应用在组件标签上是组件实例对象(vc)
+
+3.使用方式:
+
+打标识:``` <h1 ref="xxx">....</h1>```或```<School ref="xxx"></School>```
+
+获取：this.$refs.xxx
+
+### props配置
+
+我有一个组件 MyStudent，用于展示组件信息，我的组员也想用这个组件，但它的数据和我不一样，怎么办？
+
+——需要一个外部传递进来一个参数
+
+我原本的组件：
+
+ <img src="img/image-20240325151015571.png" alt="image-20240325151015571" style="zoom: 67%;" />
+
+- **基本使用如下：**
+
+<img src="img/image-20240325151433348.png" alt="image-20240325151433348" style="zoom:80%;" />
+
+ <img src="img/image-20240325151448626.png" alt="image-20240325151448626" style="zoom:80%;" />
+
+
+
+- 想对传递进来的数据（年龄+1）
+
+传递进来的数据存储在 vc（school组件实例） 上，但不在data属性中。
+
+注意：在传递数据的时候，格式一定要为 key="value"，就算是数据也要这么写（age="20"），不然会报错。但传递到 vc 后，age变成了字符串。
+
+**解决方法：**
+
+加了一个冒号，意思是动态绑定，意思是，我确实想给你传递一个值，叫age，但是它的值是引号内表达式的结果。
+
+ <img src="img/image-20240325152222984.png" alt="image-20240325152222984" style="zoom:80%;" />
+
+- 上述方法完善：在接收数据的组件中做一个限制
+
+<img src="img/image-20240325152721436.png" alt="image-20240325152721436" style="zoom:80%;" />
+
+开发中简单接收用的多。
+
+- **传递进来的数据不可以修改**
+
+如果需要修改怎么办？
+
+如果在data中有一个name:'张三'，传递进来也有一个name:'李四'，最终页面显示的是李四。可以看出在同名的情况下传递进来的数据优先级高。
+
+（如果需要修改age）解决方法如下：
+
+ <img src="img/image-20240325153401525.png" alt="image-20240325153401525" style="zoom:80%;" />
+
+- **不是所有东西都可以传递**
+
+ <img src="img/image-20240325153509514.png" alt="image-20240325153509514" style="zoom:80%;" />
+
+被vue征用 
+
+传递key无效！
+
+
+
+<font color="red">**配置项 props总结：**</font>
+
+功能:让组件接收外部传过来的数据
+
+（1）传递数据
+
+```
+<Demo name="xxx"/>
+```
+
+（2）接收数据
+
+```
+第一种方式（只接收）
+	props:['name']
+	
+第二种方式（限制类型）
+	props: {
+		name: Number
+	}
+第三种方式（限制类型、限制必要性、指定默认值）
+	props: {
+		name: {
+			type: String,
+			required: true,
+			default: '老王'
+		}
+	}
+```
+
+**备注：props是只读的，Vue底层会监测你对props的修改,如果进行了修改,就会发出警告，若业务需求确实需要修改，那么请复制props的内容到data中一份，然后去修改data中的数据。**
+
+### mixin配置项
+
+> mixin混入
+
+两个组件共享一个配置（函数）：
+
+<img src="img/image-20240325154623454.png" alt="image-20240325154623454" style="zoom:80%;" />
+
+- 使用方式：
+
+ <img src="img/image-20240325155024326.png" alt="image-20240325155024326" style="zoom:80%;" />
+
+ <img src="img/image-20240325155054991.png" alt="image-20240325155054991" style="zoom:67%;" />
+
+
+
+混合中可以写 data mounted methods
+
+- 原则：data methods 你没有的 听混合的，你有的 听你的。但是 mounted 都要
+
+- 上述方式是局部混合，全局混合在 main.js 上
+
+ <img src="img/image-20240325155410643.png" alt="image-20240325155410643" style="zoom: 67%;" />
+
+
+
+<font color="red">**混入mixin总结：**</font>
+
+功能：可以把多个组件共用的配置提取成一个混入对象
+
+使用方式：
+
+```
+第一步 定义混入
+{
+	data(){...}
+	methods: {...}
+	...
+}
+
+第二部使用混入
+（1）全局混入 在main.js中 Vue.mixin(xx)
+（2）局部混入 在组件中  import + mixins: ['xxx']
+```
+
+### 插件
+
+Vue 中的 插件是一个对象，里面要包含 install
+
+- 自定义组件
+
+ <img src="img/image-20240325160200400.png" alt="image-20240325160200400" style="zoom:67%;" />
+
+ <img src="img/image-20240325160221455.png" alt="image-20240325160221455" style="zoom:67%;" />
+
+- install 可以携带参数
+
+ <img src="img/image-20240325160352631.png" alt="image-20240325160352631" style="zoom:67%;" />
+
+ <img src="img/image-20240325160450223.png" alt="image-20240325160450223" style="zoom:67%;" />
+
+这是 vm 的缔造者，Vue**构造函数**
+
+
+
+可以在这里 使用全局过滤器、定义全局指令、定义全局混入
+
+ <img src="img/image-20240325160748424.png" alt="image-20240325160748424" style="zoom:67%;" />
+
+
+
+<font color="red">**插件总结：**</font>
+
+功能：用于增强Vu
+
+本质：包含 install 方法的一个对象，install的第一个参数是Vue，第二个以后的参数是插件使用者传递的数据。
+
+定义插件：对象.install = function( Vue,options ) {}
+
+使用插件：Vue.use()
+
+### scoped 样式
+
+脚手架中编写样式的技巧。
+
+不同组件中的样式类名会冲突。
+
+- **解决方法：style scoped**
+
+ <img src="img/image-20240325161657220.png" alt="image-20240325161657220" style="zoom: 80%;" />
+
+- **有一个组件不适用：App.vue**
+
+意思是style scoped也会生效。但是一般在 App.vue中写的样式 都是在全局使用的。
+
+- vue中支持 less（要安装less-loader） css
+
+ <img src="img/image-20240325161951077.png" alt="image-20240325161951077" style="zoom:80%;" />
+
+npm i less-loader会出错，因为兼容性问题。这个loader是在webpack 5中，但是教学视频中vue-cli使用的是 4.X版本，所以出错。但是在我 下载的时候没有出错。
+
+注意不写lang的话，默认为CSS
+
+### 案例：To do list
+
+<font color="red">**组件化编码流程（通用）**</font>
+
+1.实现静态组件：抽取组件，使用组件实现静态页面效果
+
+2.展示动态数据：
+
+​       数据的类型、名称是什么？
+
+​       数据保存在哪个组件？
+
+3.交互——从绑定事件监听开始
+
+
+
+- 第一步：实现静态组件
+
+组件的划分：按照功能划分
+
+ <img src="img/image-20240325163050984.png" alt="image-20240325163050984" style="zoom:67%;" />
