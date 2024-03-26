@@ -14,7 +14,7 @@
 <script>
 export default {
   name: 'MyFooter',
-  props: ['todos'],
+  props: ['todos','checkAllTodo','clearAllTodo'],
   computed: {
     total() {
       return this.todos.length
@@ -34,13 +34,10 @@ export default {
       console.log(e.target.checked);
       // 这里要去APP.vue中修改值
       // 因为值存在App中
-      // this.checkAllTodo(e.target.checked)
-      this.$emit('checkAllTodo',e.target.checked)
+      this.checkAllTodo(e.target.checked)
     },
     clearAll(){
-      // this.clearAllTodo()
-      this.$emit('clearAllTodo')
-
+      this.clearAllTodo()
     }
   }
 }

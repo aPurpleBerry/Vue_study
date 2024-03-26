@@ -4,6 +4,8 @@
       v-for="todoObj in todos" 
       :key="todoObj.id" 
       :todo="todoObj"
+      :changeTodo="changeTodo"
+      :deleteTodo="deleteTodo"
     ></MyItem>
   </ul>
 </template>
@@ -14,7 +16,7 @@ import MyItem from './MyItem.vue';
 export default {
   name: 'MyList',
   components: {MyItem},
-  props: ['todos']
+  props: ['todos','changeTodo','deleteTodo']
 }
 </script>
 

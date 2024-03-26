@@ -18,7 +18,6 @@
 </template>
 
 <script>
-import pubsub from 'pubsub-js'
 import MyHeader from './components/MyHeader.vue';
 import MyFooter from './components/MyFooter.vue';
 import MyList from './components/MyList.vue';
@@ -44,18 +43,13 @@ export default {
     addTodo(obj) {
       this.todos.unshift(obj)
     },
-    updateTodo(id,title) {
-      this.todos.forEach((todo)=> {
-        if(todo.id === id) todo.title = title
-      })
-    },
     changeTodo(id) {
       this.todos.forEach((todo)=> {
         if(todo.id === id) todo.done = !todo.done
       })
       console.log(this.todos);
     },
-    deleteTodo(_,id) {
+    deleteTodo(id) {
       this.todos = this.todos.filter((todo) => {
         return todo.id !== id
       })
@@ -82,16 +76,11 @@ export default {
   },
   mounted() {
     this.$bus.$on('changeTodo',this.changeTodo)
-    this.$bus.$on('updateTodo',this.updateTodo)
-
-    this.pubId = pubsub.subscribe('deleteTodo',this.deleteTodo)
-    // this.$bus.$on('deleteTodo', this.deleteTodo)
+    this.$bus.$on('deleteTodo', this.deleteTodo)
   },
   beforeDestroy() {
     this.$bus.$off('changeTodo')
-    this.$bus.$off('updateTodo')
-    // this.$bus.$off('deleteTodo')
-    pubsub.unsubscribe(this.pubId)
+    this.$bus.$off('deleteTodo')
   }
 }
 </script>
@@ -125,11 +114,6 @@ body {
   color: #fff;
   background-color: #bd362f;
 }
-
-.btn-edit {
-  color: #fff;
-  background-color: skyblue;
-  border: 2px solid rgb(73, 117, 137)}
 
 .btn:focus {
   outline: none;

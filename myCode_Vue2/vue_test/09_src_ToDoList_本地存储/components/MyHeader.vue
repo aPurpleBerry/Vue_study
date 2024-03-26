@@ -8,7 +8,7 @@
 import {nanoid} from 'nanoid'
 export default {
   name: 'MyHeader',
-  // props: ['addTodo'],
+  props: ['addTodo'],
   methods: {
     add(e) {
       if(!e.target.value) return alert('输入不能为空')
@@ -18,8 +18,7 @@ export default {
         done: false
       }
       console.log(obj);
-      // this.addTodo(obj)
-      this.$emit('addTodo',obj)
+      this.addTodo(obj)
       e.target.value = ''
     }
   }

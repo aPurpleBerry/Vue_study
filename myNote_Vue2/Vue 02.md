@@ -594,7 +594,7 @@ vue.config.js
 
 ### ref 属性
 
-想拿到一个DOM节点，不使用原生JS方法，就需要借助ref属性。
+想拿到一个 DOM 节点，不使用原生 JS 方法，就需要借助ref属性。
 
 <img src="img/image-20240325145602228.png" alt="image-20240325145602228" style="zoom:80%;" />
 
