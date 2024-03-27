@@ -79,7 +79,7 @@ API 和 localStorage 一样。getItem、SetItem、removeItem、clear（JSON.stri
 
 注意：监视的时候默认开启的不是深度监视
 
-## 02 组件自定义事件
+## 02 组件自定义事件Custom Events
 
 JS 中的内置事件，如 keyup、click等，是给HTML元素使用的
 
@@ -221,7 +221,7 @@ MyHeader添加一个todo之后，把新数据传递给 App
 
 MyFooter中统计已完成/总计，把新数据传递给App
 
-## 03 全局事件总线
+## 03 全局事件总线GlobalEventBus
 
 任意组件通信。
 
@@ -262,6 +262,8 @@ X得保证①所有组件都能看见它②有$on $off $emit
 谁要接收数据，就由谁绑定事件且余留回调函数（在mounted的时候绑定最合适）。谁要发送数据，就由谁触发事件。
 
 ## 04 消息的订阅与发布
+
+Publish–subscribe pattern
 
 用于任意组件通信。
 
@@ -317,3 +319,153 @@ vue开发工具不监测第三方库的事件，vue可以监听全局事件总�
 重点：直接在对象上添加一个属性，这个数据不是响应式的，vue无法监测
 
 要使用 this.$set(todo,'isEdit',true)
+
+## 05 nextTick
+
+- 编辑功能的输入框焦点
+
+ <img src="img/image-20240327125950010.png" alt="image-20240327125950010" style="zoom:80%;" />
+
+这一段的逻辑是，在点击了编辑按钮之后 input输入框出现，且该输入框得到焦点。
+
+但是不起效，因为执行代码的时候从上到下执行完毕之后才解析模板，也就是在当页面上没有输入框的时候，就已经设置了焦点。
+
+解决方法，可以设置一个定时器
+
+<img src="img/image-20240327130312060.png" alt="image-20240327130312060" style="zoom:80%;" />
+
+更好的解决方法：
+
+官方设置了一个API ，nextTick，它所维护的回调会在DOM节点更新完毕后再执行
+
+<img src="img/image-20240327130511148.png" alt="image-20240327130511148" style="zoom:80%;" />
+
+- nextTick 总结
+
+作用：在下一次QOM更新结束后执行其指定的回调。
+
+什么时候用：当改变数据后，要基于更新后的**新DOM**进行某些操作时，要在nextTick所指定的回调函数中执行。
+
+## 06 动画效果
+
+### 基本使用
+
+ <img src="img/image-20240327135049353.png" alt="image-20240327135049353" style="zoom: 67%;" />
+
+<img src="img/image-20240327135023300.png" alt="image-20240327135023300" style="zoom:80%;" />
+
+- 利用vue
+
+<img src="img/image-20240327140141023.png" alt="image-20240327140141023" style="zoom:80%;" />
+
+
+
+- 注：每一个过度transition可以起名字
+
+<img src="img/image-20240327140238112.png" alt="image-20240327140238112" style="zoom:80%;" />
+
+- 让最开始的时候就有动画，设置 appear属性为TRUE，这里要写v-bind，因为如果是 apper="true"表示的是字符串，v-bind:appear="true"才是等于双引号内的值
+
+ <img src="img/image-20240327140335532.png" alt="image-20240327140335532" style="zoom:67%;" />
+
+- 用vue写动画（之前是用CSS3写的）
+
+一个元素向我们来的时候，vue规定了三个样式类名：来的起点、来的终点、来的过程。走的时候也是三个样式类名。 
+
+```html
+<template>
+  <div>
+    <button @click="isShow=!isShow">显示/隐藏</button>
+    <transition name="hello">
+      <h1 v-show="isShow">你好啊</h1>
+    </transition>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'MyTest',
+  data(){
+    return {
+      isShow: true
+    }
+  }
+}
+</script>
+
+<style>
+h1 {
+  background-color: orange;
+  /* 激活样式 方法一 */
+  /* 哪个元素有动画就在哪里写transition */
+  /* transition: 0.5s linear; */
+}
+/* 激活样式方法二 */
+.hello-enter-active .hello-leave-active{
+  transition: 0.5s linear;
+}
+
+/* 进入的起点和离开的重点是一样的 */
+.hello-enter .hello-leave-to{
+  transform: translateX(-100%);
+}
+
+/* 进入的终点和离开的起点一样 */
+.hello-enter-to .hello-leave {
+  transform: translateX(0);
+}
+
+</style>
+```
+
+### 多个元素过渡
+
+```<transition>``` can only be used on a single element. Use ```<transition-group>```  for lists.
+
+```<transition-group>```  children must be keyed
+
+<img src="img/image-20240327142006850.png" alt="image-20240327142006850" style="zoom:80%;" />
+
+### 第三方库 Animate.css
+
+文档地址：https://animate.style/
+
+①安装：npm install animate.css
+
+② 引入，因为引入的是样式，所以import后面直接加上路径
+
+ <img src="img/image-20240327142922660.png" alt="image-20240327142922660" style="zoom:80%;" />
+
+### 总结
+
+**Vue封装的过度与动画**
+
+1、作用：在插入、更新或移除DOM元素时，在合适的时候给元素添加样式类名。
+
+2、图示：
+
+<img src="img/image-20240327143017402.png" alt="image-20240327143017402" style="zoom: 67%;" /> 
+
+3、写法
+
+① 准备好样式
+
+```
+元素进入的样式
+v-enter 进入的起点
+v-enter-active 进入过程中
+v-enter-to 进入的终点
+
+元素离开的样式
+v-leave 离开的起点
+v-leave-active 离开过程中
+v-leave-to 离开的重点
+```
+
+② 使用 ```<transition>``` 包裹要过度的动画，并配置name属性
+
+③ 备注：如果有多个元素需要过度，则需要使用 ```<transition-group>```  ，且每个元素都要指定 ```key``` 值。
+
+### 案例 todolist的完善
+
+在 MyItem中修改 或者 myList 中都可以

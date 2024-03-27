@@ -1,149 +1,45 @@
 <template>
-<div id="root">
-  <div class="todo-container">
-    <div class="todo-wrap">
-      <MyHeader @addTodo="addTodo"></MyHeader>
-      <MyList :todos="todos" 
-      ></MyList>
-      
-      <MyFooter 
-      :todos="todos"
-      @checkAllTodo="checkAllTodo"
-      @clearAllTodo="clearAllTodo"
-      ></MyFooter>
-    </div>
-  </div>
-</div>
+  <div class="container">
+    <!-- 无序列表 -->
+    <MyCategory title="游戏">
+      <template scope="data">
+        <ul>
+          <li v-for="(item,index) in data.mygames" :key="index">{{item}}</li>
+        </ul>
+      </template>
+    </MyCategory>
+    
+    <!-- 有序列表 -->
+    <!-- <MyCategory title="游戏">
+      <ol>
+        <li v-for="(item,index) in games" :key="index">{{item}}</li>
+      </ol>
+    </MyCategory> -->
 
+    <!-- h4  -->
+    <!-- <MyCategory title="游戏">
+      <h4 v-for="(item,index) in games" :key="index">{{item}}</h4>
+    </MyCategory> -->
+  </div>
 </template>
 
 <script>
-import pubsub from 'pubsub-js'
-import MyHeader from './components/MyHeader.vue';
-import MyFooter from './components/MyFooter.vue';
-import MyList from './components/MyList.vue';
+import MyCategory from './components/MyCategory.vue'
 
 export default {
   name: 'App',
-  components: {MyHeader,MyFooter,MyList},
+  components: {MyCategory},
   data() {
     return {
-      // todos: [
-      //   {id: '001',title:'抽烟',done:true},
-      //   {id: '002',title:'喝酒',done:false},
-      //   {id: '003',title:'开车',done:true},
-      // ]
-      changeId: '',
-      delId: '',
-      todos: JSON.parse(localStorage.getItem('todos')) || []
-      // 这里加了一个 ||[]，因为最开始todos为空，显示为null.
-      // 传递给footer的时候报错，因为footer中使用了this.todos.length
+      
     }
   },
-  methods: {
-    addTodo(obj) {
-      this.todos.unshift(obj)
-    },
-    updateTodo(id,title) {
-      this.todos.forEach((todo)=> {
-        if(todo.id === id) todo.title = title
-      })
-    },
-    changeTodo(id) {
-      this.todos.forEach((todo)=> {
-        if(todo.id === id) todo.done = !todo.done
-      })
-      console.log(this.todos);
-    },
-    deleteTodo(_,id) {
-      this.todos = this.todos.filter((todo) => {
-        return todo.id !== id
-      })
-    },
-    checkAllTodo(done) {
-      this.todos.forEach(ele => {
-        ele.done = done
-      });
-    },
-    clearAllTodo(){
-      this.todos = this.todos.filter((todo) => {
-        return !todo.done
-      })
-    }
-  },
-  watch:{
-    todos: {
-      deep:true,
-      handler(value) {
-        // value是最新的todos
-        localStorage.setItem('todos',JSON.stringify(value))
-      }
-    }
-  },
-  mounted() {
-    this.$bus.$on('changeTodo',this.changeTodo)
-    this.$bus.$on('updateTodo',this.updateTodo)
-
-    this.pubId = pubsub.subscribe('deleteTodo',this.deleteTodo)
-    // this.$bus.$on('deleteTodo', this.deleteTodo)
-  },
-  beforeDestroy() {
-    this.$bus.$off('changeTodo')
-    this.$bus.$off('updateTodo')
-    // this.$bus.$off('deleteTodo')
-    pubsub.unsubscribe(this.pubId)
-  }
 }
 </script>
 
 <style>
-/*base*/
-body {
-  background: #fff;
-}
-
-.btn {
-  display: inline-block;
-  padding: 4px 12px;
-  margin-bottom: 0;
-  font-size: 14px;
-  line-height: 20px;
-  text-align: center;
-  vertical-align: middle;
-  cursor: pointer;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
-  border-radius: 4px;
-}
-
-.btn-danger {
-  color: #fff;
-  background-color: #da4f49;
-  border: 1px solid #bd362f;
-}
-
-.btn-danger:hover {
-  color: #fff;
-  background-color: #bd362f;
-}
-
-.btn-edit {
-  color: #fff;
-  background-color: skyblue;
-  border: 2px solid rgb(73, 117, 137)}
-
-.btn:focus {
-  outline: none;
-}
-
-.todo-container {
-  width: 600px;
-  margin: 0 auto;
-}
-.todo-container .todo-wrap {
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-}
-
-
+  .container {
+    display: flex;
+    justify-content: space-around;
+  }
 </style>

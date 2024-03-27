@@ -789,7 +789,7 @@ Vue 中的 插件是一个对象，里面要包含 install
 
 定义插件：对象.install = function( Vue,options ) {}
 
-使用插件：Vue.use()
+使用插件：Vue.use() 
 
 ### scoped 样式
 

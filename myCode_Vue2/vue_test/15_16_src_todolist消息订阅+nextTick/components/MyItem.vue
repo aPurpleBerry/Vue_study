@@ -5,7 +5,7 @@
       <!-- 如下代码也能实现功能，但是不太推荐，因为有点违反原则，因为修改了props -->
       <!-- <input type="checkbox" v-model="todo.done"> -->
       <span v-show="!todo.isEdit">{{todo.title}}</span>
-      <input  v-show="todo.isEdit" type="text" :value="todo.title" @blur="handlerBlur(todo,$event)" />
+      <input  ref="inputTitle" v-show="todo.isEdit" type="text" :value="todo.title" @blur="handlerBlur(todo,$event)" />
     </label>
     <button class="btn btn-danger" @click="deleteItem(todo.id)">删除</button>
     <button v-show="!todo.isEdit"  class="btn btn-edit"  @click="EditItem(todo)">编辑</button>
@@ -39,7 +39,12 @@ export default {
       } else {
         todo.isEdit = true
       }
-      
+      this.$nextTick(function(){
+        this.$refs.inputTitle.focus()
+      })
+      // setTimeout(()=>{
+      //   this.$refs.inputTitle.focus()
+      // },2000)
       // todo.isEdit = true
     },
     handlerBlur(todo,e){
